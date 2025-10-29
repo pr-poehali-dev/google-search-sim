@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -22,6 +23,8 @@ interface SearchResult {
 }
 
 export default function Index() {
+  const navigate = useNavigate();
+  const [user, setUser] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -29,6 +32,13 @@ export default function Index() {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    if (!storedUser) {
+      navigate('/login');
+      return;
+    }
+    setUser(JSON.parse(storedUser));
+
     const script = document.createElement('script');
     script.src = 'https://cse.google.com/cse.js?cx=4452bb97441214b1d';
     script.async = true;
@@ -47,9 +57,11 @@ export default function Index() {
     };
 
     return () => {
-      document.body.removeChild(script);
+      if (document.body.contains(script)) {
+        document.body.removeChild(script);
+      }
     };
-  }, []);
+  }, [navigate]);
 
   const extractSearchResults = () => {
     setTimeout(() => {
@@ -146,9 +158,39 @@ export default function Index() {
     }
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem('user');
+    toast.success('Вы вышли из аккаунта');
+    navigate('/login');
+  };
+
+  if (!user) {
+    return null;
+  }
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <div className="container mx-auto px-4 py-8">
+        <div className="flex justify-between items-center mb-8">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center glow-box">
+              <Icon name="User" size={20} />
+            </div>
+            <div>
+              <p className="font-semibold text-foreground">{user.username}</p>
+              <p className="text-sm text-muted-foreground">{user.email}</p>
+            </div>
+          </div>
+          <Button
+            onClick={handleLogout}
+            variant="outline"
+            className="border-destructive/50 text-destructive hover:bg-destructive/20"
+          >
+            <Icon name="LogOut" size={18} className="mr-2" />
+            Выйти
+          </Button>
+        </div>
+
         <div className="text-center mb-12">
           <h1 className="text-6xl font-bold mb-4 glow-text">
             GAMER SEARCH
