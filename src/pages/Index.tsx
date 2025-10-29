@@ -7,14 +7,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import Icon from '@/components/ui/icon';
 import { toast } from 'sonner';
 
-declare global {
-  interface Window {
-    __gcse?: {
-      callback?: () => void;
-    };
-  }
-}
-
 interface SearchResult {
   title: string;
   link: string;
@@ -29,7 +21,8 @@ export default function Index() {
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
@@ -38,57 +31,46 @@ export default function Index() {
       return;
     }
     setUser(JSON.parse(storedUser));
-
-    const script = document.createElement('script');
-    script.src = 'https://cse.google.com/cse.js?cx=4452bb97441214b1d';
-    script.async = true;
-    document.body.appendChild(script);
-
-    window.__gcse = {
-      callback: () => {
-        const searchElement = document.querySelector('.gcse-search');
-        if (searchElement) {
-          const observer = new MutationObserver(() => {
-            extractSearchResults();
-          });
-          observer.observe(searchElement, { childList: true, subtree: true });
-        }
-      }
-    };
-
-    return () => {
-      if (document.body.contains(script)) {
-        document.body.removeChild(script);
-      }
-    };
   }, [navigate]);
 
-  const extractSearchResults = () => {
-    setTimeout(() => {
-      const results: SearchResult[] = [];
-      const resultElements = document.querySelectorAll('.gsc-webResult');
-      
-      resultElements.forEach((element) => {
-        const titleEl = element.querySelector('.gs-title') as HTMLElement;
-        const linkEl = element.querySelector('.gs-title b') as HTMLElement;
-        const snippetEl = element.querySelector('.gs-snippet') as HTMLElement;
-        const displayLinkEl = element.querySelector('.gsc-url-top') as HTMLElement;
-        
-        if (titleEl && linkEl && snippetEl) {
-          const link = titleEl.closest('a')?.href || '';
-          results.push({
-            title: titleEl.innerText || '',
-            link: link,
-            snippet: snippetEl.innerText || '',
-            displayLink: displayLinkEl?.innerText || ''
-          });
-        }
-      });
-      
-      if (results.length > 0) {
+  const handleSearch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!searchQuery.trim()) {
+      toast.error('Введи поисковый запрос');
+      return;
+    }
+
+    setIsSearching(true);
+    setSearchResults([]);
+
+    try {
+      const apiKey = 'AIzaSyCVAXiUzRBvOYT3OV5yF7ijNPLGGqz7LYI';
+      const cx = '4452bb97441214b1d';
+      const response = await fetch(
+        `https://www.googleapis.com/customsearch/v1?key=${apiKey}&cx=${cx}&q=${encodeURIComponent(searchQuery)}`
+      );
+
+      const data = await response.json();
+
+      if (data.items && data.items.length > 0) {
+        const results = data.items.map((item: any) => ({
+          title: item.title,
+          link: item.link,
+          snippet: item.snippet,
+          displayLink: item.displayLink
+        }));
         setSearchResults(results);
+        toast.success(`Найдено ${results.length} результатов!`);
+      } else {
+        toast.info('Ничего не найдено. Попробуй другой запрос.');
       }
-    }, 1000);
+    } catch (error) {
+      console.error('Search error:', error);
+      toast.error('Ошибка поиска. Попробуй еще раз.');
+    } finally {
+      setIsSearching(false);
+    }
   };
 
   const handlePreview = (url: string) => {
@@ -97,7 +79,7 @@ export default function Index() {
   };
 
   const handleDownloadSite = async (url: string) => {
-    setIsLoading(true);
+    setIsDownloading(true);
     toast.loading('Выкачиваю сайт...', { id: 'download' });
 
     try {
@@ -154,7 +136,7 @@ export default function Index() {
       console.error('Download error:', error);
       toast.error('Ошибка выкачивания. Попробуй с другим сайтом.', { id: 'download' });
     } finally {
-      setIsLoading(false);
+      setIsDownloading(false);
     }
   };
 
@@ -201,16 +183,44 @@ export default function Index() {
         </div>
 
         <div className="max-w-4xl mx-auto mb-12">
-          <div className="glow-box rounded-lg p-1 bg-gradient-to-r from-primary/20 to-secondary/20">
-            <div className="gcse-search bg-card rounded-lg"></div>
-          </div>
+          <form onSubmit={handleSearch} className="glow-box rounded-lg p-1 bg-gradient-to-r from-primary/20 to-secondary/20">
+            <div className="flex gap-2 bg-card rounded-lg p-4">
+              <div className="relative flex-1">
+                <Icon name="Search" size={20} className="absolute left-3 top-3 text-muted-foreground" />
+                <Input
+                  type="text"
+                  placeholder="Введи запрос для поиска..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 bg-input border-border focus:border-primary text-lg"
+                />
+              </div>
+              <Button
+                type="submit"
+                disabled={isSearching}
+                className="bg-primary hover:bg-primary/80 glow-box px-8"
+              >
+                {isSearching ? (
+                  <>
+                    <Icon name="Loader2" size={20} className="mr-2 animate-spin" />
+                    Ищу...
+                  </>
+                ) : (
+                  <>
+                    <Icon name="Zap" size={20} className="mr-2" />
+                    Искать
+                  </>
+                )}
+              </Button>
+            </div>
+          </form>
         </div>
 
         {searchResults.length > 0 && (
           <div className="max-w-6xl mx-auto space-y-4">
             <h2 className="text-2xl font-semibold mb-6 flex items-center gap-2">
-              <Icon name="Search" size={28} className="text-primary" />
-              Результаты поиска
+              <Icon name="Target" size={28} className="text-primary" />
+              Найдено: {searchResults.length} результатов
             </h2>
             
             {searchResults.map((result, index) => (
@@ -240,7 +250,7 @@ export default function Index() {
                       </Button>
                       <Button
                         onClick={() => handleDownloadSite(result.link)}
-                        disabled={isLoading}
+                        disabled={isDownloading}
                         variant="outline"
                         className="border-secondary text-secondary hover:bg-secondary/20"
                       >
@@ -282,44 +292,6 @@ export default function Index() {
             </div>
           </DialogContent>
         </Dialog>
-
-        <style>{`
-          .gcse-search {
-            background: transparent !important;
-          }
-          
-          .gsc-control-cse {
-            background-color: transparent !important;
-            border: none !important;
-            padding: 0 !important;
-          }
-          
-          .gsc-input-box {
-            background: hsl(var(--input)) !important;
-            border: 2px solid hsl(var(--border)) !important;
-            border-radius: 0.5rem !important;
-          }
-          
-          .gsc-input {
-            color: hsl(var(--foreground)) !important;
-            font-family: 'Rubik', sans-serif !important;
-          }
-          
-          .gsc-search-button {
-            background: hsl(var(--primary)) !important;
-            border: none !important;
-            border-radius: 0.5rem !important;
-          }
-          
-          .gsc-results {
-            display: none !important;
-          }
-          
-          .gsc-result {
-            background: transparent !important;
-            border: none !important;
-          }
-        `}</style>
       </div>
     </div>
   );
