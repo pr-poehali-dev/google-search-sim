@@ -51,19 +51,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'isBase64Encoded': False
         }
     
-    api_key = os.environ.get('GOOGLE_API_KEY')
+    api_key = 'AIzaSyCVAXiUzRBvOYT3OV5yF7ijNPLGGqz7LYI'
     cx = '4452bb97441214b1d'
-    
-    if not api_key:
-        return {
-            'statusCode': 500,
-            'headers': {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'
-            },
-            'body': json.dumps({'error': 'API key not configured'}),
-            'isBase64Encoded': False
-        }
     
     search_url = f'https://www.googleapis.com/customsearch/v1?key={api_key}&cx={cx}&q={urllib.parse.quote(query)}'
     

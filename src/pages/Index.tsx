@@ -75,7 +75,8 @@ export default function Index() {
     toast.loading('Выкачиваю сайт...', { id: 'download' });
 
     try {
-      const response = await fetch(url, { mode: 'cors' });
+      const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
+      const response = await fetch(proxyUrl);
       const html = await response.text();
       
       const parser = new DOMParser();
@@ -85,24 +86,30 @@ export default function Index() {
       const jsScripts = Array.from(doc.querySelectorAll('script[src]'));
       
       let cssContent = '';
-      for (const link of cssLinks) {
+      for (const link of cssLinks.slice(0, 3)) {
         const href = (link as HTMLLinkElement).href;
-        try {
-          const cssResponse = await fetch(href);
-          cssContent += await cssResponse.text() + '\n';
-        } catch (e) {
-          console.error('CSS fetch error:', e);
+        if (href && href.startsWith('http')) {
+          try {
+            const cssProxy = `https://api.allorigins.win/raw?url=${encodeURIComponent(href)}`;
+            const cssResponse = await fetch(cssProxy);
+            cssContent += await cssResponse.text() + '\n';
+          } catch (e) {
+            console.error('CSS fetch error:', e);
+          }
         }
       }
       
       let jsContent = '';
-      for (const script of jsScripts) {
+      for (const script of jsScripts.slice(0, 3)) {
         const src = (script as HTMLScriptElement).src;
-        try {
-          const jsResponse = await fetch(src);
-          jsContent += await jsResponse.text() + '\n';
-        } catch (e) {
-          console.error('JS fetch error:', e);
+        if (src && src.startsWith('http')) {
+          try {
+            const jsProxy = `https://api.allorigins.win/raw?url=${encodeURIComponent(src)}`;
+            const jsResponse = await fetch(jsProxy);
+            jsContent += await jsResponse.text() + '\n';
+          } catch (e) {
+            console.error('JS fetch error:', e);
+          }
         }
       }
 
@@ -167,10 +174,10 @@ export default function Index() {
 
         <div className="text-center mb-12">
           <h1 className="text-6xl font-bold mb-4 glow-text">
-            GAMER SEARCH
+            CHARING COMMAND
           </h1>
           <p className="text-xl text-muted-foreground">
-            🎮 Поиск, просмотр и выкачивание сайтов
+            ⚡ Поиск, просмотр и выкачивание сайтов
           </p>
         </div>
 
@@ -278,7 +285,7 @@ export default function Index() {
                   src={previewUrl}
                   className="w-full h-full border-0"
                   title="Site Preview"
-                  sandbox="allow-same-origin allow-scripts"
+                  sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
                 />
               )}
             </div>

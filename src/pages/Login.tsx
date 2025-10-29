@@ -57,10 +57,10 @@ export default function Login() {
         <CardHeader className="space-y-1 text-center">
           <CardTitle className="text-3xl font-bold glow-text">
             <Icon name="LogIn" size={32} className="inline mr-2" />
-            ВХОД
+            CHARING COMMAND
           </CardTitle>
           <CardDescription className="text-muted-foreground">
-            Войди в свой геймерский аккаунт
+            Войди в свой аккаунт
           </CardDescription>
         </CardHeader>
         
