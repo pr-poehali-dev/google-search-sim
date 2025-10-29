@@ -1,0 +1,25 @@
+{
+  "tests": [
+    {
+      "name": "Search for React",
+      "method": "GET",
+      "path": "/?q=React",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "items": "array",
+        "total": "number"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Empty query returns error",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 400,
+      "expectedBody": {
+        "error": "string"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

@@ -45,23 +45,15 @@ export default function Index() {
     setSearchResults([]);
 
     try {
-      const apiKey = 'AIzaSyCVAXiUzRBvOYT3OV5yF7ijNPLGGqz7LYI';
-      const cx = '4452bb97441214b1d';
       const response = await fetch(
-        `https://www.googleapis.com/customsearch/v1?key=${apiKey}&cx=${cx}&q=${encodeURIComponent(searchQuery)}`
+        `https://functions.poehali.dev/879b2aea-a924-45d1-b3c9-4ef738ade474?q=${encodeURIComponent(searchQuery)}`
       );
 
       const data = await response.json();
 
       if (data.items && data.items.length > 0) {
-        const results = data.items.map((item: any) => ({
-          title: item.title,
-          link: item.link,
-          snippet: item.snippet,
-          displayLink: item.displayLink
-        }));
-        setSearchResults(results);
-        toast.success(`Найдено ${results.length} результатов!`);
+        setSearchResults(data.items);
+        toast.success(`Найдено ${data.items.length} результатов!`);
       } else {
         toast.info('Ничего не найдено. Попробуй другой запрос.');
       }
