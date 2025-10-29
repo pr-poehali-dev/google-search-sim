@@ -166,9 +166,7 @@ export default function Index() {
         </div>
 
         <div className="text-center mb-12">
-          <h1 className="text-6xl font-bold mb-4 glow-text">
-            GAMER SEARCH
-          </h1>
+          <h1 className="text-6xl font-bold mb-4 glow-text">Charing Tool</h1>
           <p className="text-xl text-muted-foreground">
             🎮 Поиск, просмотр и выкачивание сайтов
           </p>
