@@ -71,10 +71,10 @@ export default function Register() {
         <CardHeader className="space-y-1 text-center">
           <CardTitle className="text-3xl font-bold glow-text">
             <Icon name="UserPlus" size={32} className="inline mr-2" />
-            CHARING COMMAND
+            РЕГИСТРАЦИЯ
           </CardTitle>
           <CardDescription className="text-muted-foreground">
-            Создай свой профиль
+            Создай свой геймерский профиль
           </CardDescription>
         </CardHeader>
         
