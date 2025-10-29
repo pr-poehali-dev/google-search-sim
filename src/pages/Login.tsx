@@ -59,9 +59,7 @@ export default function Login() {
             <Icon name="LogIn" size={32} className="inline mr-2" />
             ВХОД
           </CardTitle>
-          <CardDescription className="text-muted-foreground">
-            Войди в свой геймерский аккаунт
-          </CardDescription>
+          <CardDescription className="text-muted-foreground">Войди в свой аккаунт прямо сейчас!</CardDescription>
         </CardHeader>
         
         <CardContent>
